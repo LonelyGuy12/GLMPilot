@@ -1,4 +1,5 @@
 #!/bin/bash
+export NODE_ENV=production
 # Start Redis in the background with essential flags for containerized environments
 echo "Starting Redis server..."
 redis-server --daemonize yes --protected-mode no

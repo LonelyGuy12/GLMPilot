@@ -39,20 +39,19 @@ app.use('/api/v1', apiRoutes);
 // Error handler
 app.use(errorHandler);
 
-// Serve static frontend in production
-if (config.NODE_ENV === 'production') {
-  const __filename = fileURLToPath(import.meta.url);
-  const __dirname = path.dirname(__filename);
-  
-  // In dist/index.js, __dirname is packages/server/dist
-  // So we go up 3 levels: dist -> server -> packages -> then into client/dist
-  const clientPath = path.join(__dirname, '../../client/dist');
-  app.use(express.static(clientPath));
-  
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(clientPath, 'index.html'));
+const clientPath = path.join(__dirname, '../../client/dist');
+
+// Serve static frontend
+app.use(express.static(clientPath));
+
+// Fallback for SPA routing and root
+app.get('*', (req, res) => {
+  res.sendFile(path.join(clientPath, 'index.html'), (err) => {
+    if (err && !res.headersSent) {
+      res.status(404).send('GLMPilot: Frontend build not found. Please ensure npm run build was successful.');
+    }
   });
-}
+});
 
 // WebSocket
 setupWebSocketHandlers(io);
