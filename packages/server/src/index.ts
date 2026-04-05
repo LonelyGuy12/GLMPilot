@@ -71,7 +71,7 @@ httpServer.on('error', (err: NodeJS.ErrnoException) => {
 });
 
 // Start server
-httpServer.listen(config.PORT, () => {
+httpServer.listen(config.PORT, '0.0.0.0', () => {
   logger.info(`🚀 GLMPilot server running on port ${config.PORT}`);
   logger.info(`   Environment: ${config.NODE_ENV}`);
   logger.info(`   Client URL: ${config.CLIENT_URL}`);

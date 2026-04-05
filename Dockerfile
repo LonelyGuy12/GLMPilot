@@ -33,8 +33,12 @@ ENV PORT=7860
 ENV CLIENT_URL=*
 ENV REDIS_URL=redis://localhost:6379
 
+# Copy startup script
+COPY scripts/start-hf.sh ./scripts/start-hf.sh
+RUN chmod +x ./scripts/start-hf.sh
+
 # Expose the HF port
 EXPOSE 7860
 
-# Start Redis and the server
-CMD redis-server --daemonize yes && npm run start -w packages/server
+# Start Redis and the server via script
+CMD ["./scripts/start-hf.sh"]
