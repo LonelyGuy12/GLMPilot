@@ -14,7 +14,7 @@ export class GLMClient {
 
   constructor() {
     this.model = config.GLM_MODEL || GLM_DEFAULTS.MODEL;
-    const baseUrl = (config.GLM_BASE_URL || GLM_DEFAULTS.BASE_URL).trim();
+    const baseUrl = (config.GLM_BASE_URL || GLM_DEFAULTS.BASE_URL).trim().replace(/\/?$/, '/');
 
     this.client = axios.create({
       baseURL: baseUrl,
@@ -104,6 +104,21 @@ export class GLMClient {
       }
     } catch (err) {
       if (signal?.aborted) return;
+      const axiosErr = err as import('axios').AxiosError;
+      if (axiosErr.response) {
+        // For streaming requests, response.data is a Node.js Readable stream.
+        // Read it to get the actual GLM API error body.
+        try {
+          const chunks: Buffer[] = [];
+          for await (const chunk of axiosErr.response.data as AsyncIterable<Buffer>) {
+            chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+          }
+          const body = Buffer.concat(chunks).toString('utf-8');
+          throw new Error(`GLM API ${axiosErr.response.status}: ${body}`);
+        } catch (readErr) {
+          if ((readErr as Error).message.startsWith('GLM API')) throw readErr;
+        }
+      }
       throw err;
     } finally {
       this.releaseSlot();
