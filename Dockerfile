@@ -1,62 +1,45 @@
-# Stage 1: Build the application
+# Stage 1: Build the full application
 FROM node:20-bookworm AS builder
 
+# Set build-time directory
 WORKDIR /app
 
-# Copy root configurations
-COPY package.json package-lock.json ./
-COPY packages/shared/package.json ./packages/shared/
-COPY packages/server/package.json ./packages/server/
-COPY packages/client/package.json ./packages/client/
-
-# Install all dependencies for building
-RUN npm ci
-
-# Copy source code
+# Copy all source files
 COPY . .
 
-# Build all packages (shared -> server -> client)
-RUN npm run build
+# Install all dependencies and build
+RUN npm ci && npm run build
 
 
-# Stage 2: Runtime environment
+# Stage 2: Final Runtime Image
 FROM node:20-bookworm-slim
 
-# Install runtime dependencies: Redis, Java (for execution), and Python
+# Install runtime dependencies: Redis, Java, and Python
 RUN apt-get update && apt-get install -y \
     python3 \
     openjdk-17-jdk \
     redis-server \
     && rm -rf /var/lib/apt/lists/*
 
+# Set runtime working directory
 WORKDIR /app
 
-# Copy production manifests
-COPY package.json package-lock.json ./
-COPY packages/shared/package.json ./packages/shared/
-COPY packages/server/package.json ./packages/server/
-COPY packages/client/package.json ./packages/client/
+# Copy EVERYTHING from builder (including dist and node_modules) 
+# to ensure workspace symlinks and dependencies are preserved exactly.
+COPY --from=builder /app .
 
-# Install only production dependencies
-RUN npm ci --omit=dev
-
-# Copy compiled results from the builder
-COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
-COPY --from=builder /app/packages/server/dist ./packages/server/dist
-COPY --from=builder /app/packages/client/dist ./packages/client/dist
-
-# Copy startup script
-COPY scripts/start-hf.sh ./scripts/start-hf.sh
+# Ensure the startup script is executable
 RUN chmod +x ./scripts/start-hf.sh
 
 # Environment variables for Hugging Face
 ENV NODE_ENV=production
-ENV PORT=7860
+# Hugging Face usually provides PORT, but we default to 7860
+ENV PORT=7860 
 ENV CLIENT_URL=*
 ENV REDIS_URL=redis://localhost:6379
 
 # Expose the HF port
 EXPOSE 7860
 
-# Start Redis and the server
+# Use the robust startup script
 CMD ["./scripts/start-hf.sh"]
