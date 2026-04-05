@@ -35,7 +35,7 @@ function required(key: string): string {
 export const config: EnvConfig = {
   NODE_ENV: (process.env.NODE_ENV || 'development').trim(),
   PORT: process.env.NODE_ENV === 'production' ? 7860 : parseInt(process.env.PORT || '3001', 10),
-  CLIENT_URL: (process.env.NODE_ENV === 'production' ? 'http://localhost:7860' : (process.env.CLIENT_URL || 'http://localhost:5173')).trim(),
+  CLIENT_URL: (process.env.NODE_ENV === 'production' ? '*' : (process.env.CLIENT_URL || 'http://localhost:5173')).trim(),
   GLM_API_KEY: required('GLM_API_KEY'),
   GLM_BASE_URL: (process.env.GLM_BASE_URL || 'https://open.bigmodel.cn/api/paas/v4/').trim(),
   GLM_MODEL: (process.env.GLM_MODEL || 'glm-5').trim(),

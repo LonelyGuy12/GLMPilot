@@ -17,7 +17,7 @@ const httpServer = createServer(app);
 // Socket.io setup
 const io = new SocketServer(httpServer, {
   cors: {
-    origin: config.CLIENT_URL,
+    origin: config.CLIENT_URL === '*' ? true : config.CLIENT_URL,
     methods: ['GET', 'POST'],
     credentials: true,
   },

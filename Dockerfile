@@ -1,9 +1,10 @@
 FROM node:20-bookworm
 
-# Install Python and Java
+# Install Python, Java, and Redis
 RUN apt-get update && apt-get install -y \
     python3 \
     openjdk-17-jdk \
+    redis-server \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
@@ -29,10 +30,11 @@ RUN npm run build
 # Set environment variables for Hugging Face Spaces
 ENV NODE_ENV=production
 ENV PORT=7860
-ENV CLIENT_URL=http://localhost:7860
+ENV CLIENT_URL=*
+ENV REDIS_URL=redis://localhost:6379
 
 # Expose the HF port
 EXPOSE 7860
 
-# Start the server
-CMD ["npm", "run", "start", "-w", "packages/server"]
+# Start Redis and the server
+CMD redis-server --daemonize yes && npm run start -w packages/server
