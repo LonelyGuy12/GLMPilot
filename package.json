@@ -1,0 +1,22 @@
+{
+  "name": "glmpilot",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w packages/client",
+    "dev:server": "npm run dev -w packages/server",
+    "dev:all": "concurrently \"npm run dev:server\" \"npm run dev\"",
+    "build": "npm run build -w packages/shared && npm run build -w packages/server && npm run build -w packages/client",
+    "build:shared": "npm run build -w packages/shared",
+    "build:server": "npm run build -w packages/server",
+    "build:client": "npm run build -w packages/client",
+    "typecheck": "tsc --build"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "typescript": "^5.4.0"
+  }
+}
